@@ -8,15 +8,18 @@ import (
 
 func (app *application) routes() http.Handler {
 
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-
 	mux := http.NewServeMux()
+	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
-	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
+
+	// dynamic middleware
+	dynamicMiddleware := alice.New(app.sessionManager.LoadAndSave)
+
+	mux.Handle("GET /{$}", dynamicMiddleware.ThenFunc(app.home))
+	mux.Handle("GET /snippet/view/{id}", dynamicMiddleware.ThenFunc(app.snippetView))
+	mux.Handle("GET /snippet/create", dynamicMiddleware.ThenFunc(app.snippetCreate))
 	//post
-	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
+	mux.Handle("POST /snippet/create", dynamicMiddleware.ThenFunc(app.snippetCreatePost))
 
 	//return app.recoverPanic(app.logRequest(commonHeaders(mux)))
 
