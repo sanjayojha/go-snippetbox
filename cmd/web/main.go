@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -27,7 +28,7 @@ type application struct {
 func main() {
 
 	addr := flag.String("addr", ":8080", "HTTP network address")
-	dsn := flag.String("dsn", "root:root@tcp(127.0.0.1:32782)/go_snippetbox?parseTime=true", "MySQL data source name")
+	dsn := flag.String("dsn", "root:root@tcp(127.0.0.1:32789)/go_snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -59,11 +60,25 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	muxRoutes := app.routes()
+
+	srv := &http.Server{
+		Addr:         *addr,
+		Handler:      muxRoutes,
+		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig:    tlsConfig,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
 
 	//log.Printf("Server started on %s", *addr)
 	logger.Info("Starting Server", "addr", *addr)
-	err = http.ListenAndServe(*addr, muxRoutes)
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	logger.Error(err.Error())
 	os.Exit(1)
 	//log.Fatal(err)
