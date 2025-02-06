@@ -18,8 +18,13 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /{$}", dynamicMiddleware.ThenFunc(app.home))
 	mux.Handle("GET /snippet/view/{id}", dynamicMiddleware.ThenFunc(app.snippetView))
 	mux.Handle("GET /snippet/create", dynamicMiddleware.ThenFunc(app.snippetCreate))
-	//post
 	mux.Handle("POST /snippet/create", dynamicMiddleware.ThenFunc(app.snippetCreatePost))
+
+	mux.Handle("GET /user/signup", dynamicMiddleware.ThenFunc(app.userSignup))
+	mux.Handle("POST /user/signup", dynamicMiddleware.ThenFunc(app.userSignupPost))
+	mux.Handle("GET /user/login", dynamicMiddleware.ThenFunc(app.userLogin))
+	mux.Handle("POST /user/login", dynamicMiddleware.ThenFunc(app.userLoginPost))
+	mux.Handle("POST /user/logout", dynamicMiddleware.ThenFunc(app.userLogoutPost))
 
 	//return app.recoverPanic(app.logRequest(commonHeaders(mux)))
 
