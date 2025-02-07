@@ -29,7 +29,7 @@ type application struct {
 func main() {
 
 	addr := flag.String("addr", ":8080", "HTTP network address")
-	dsn := flag.String("dsn", "root:root@tcp(127.0.0.1:32768)/go_snippetbox?parseTime=true", "MySQL data source name")
+	dsn := flag.String("dsn", "root:root@tcp(127.0.0.1:32783)/go_snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
